@@ -17,19 +17,24 @@ def parse_xml(xml : str) -> dict:
         if not title or not url:
             continue        
         entries[title] = url
-    
+    # TODO: get content / description?
     return entries
     
 def main():
-    urls = ["https://www.propublica.org/feeds/propublica/main", "https://www.404media.co/rss/", "https://feedx.net/rss/ap.xml", "https://feeds.feedburner.com/motherjones/feed"]
-    xml = get_raw_xml(random.choice(urls))
-    if not xml:
-        print("failed to grab!")
-        return None  
-    
-    stories = parse_xml(xml)
-    for item in stories:
-        print(f"{item}\n{stories[item]}\n")
+    with open("feeds.txt", "r") as f:
+        feeds = [line.strip() for line in f.readlines()]
+
+    for feed in feeds:
+        xml = get_raw_xml(feed)
+        if not xml:
+            print("failed to grab!")
+            return None  
+        
+        stories = parse_xml(xml)
+        for item in stories:
+            print(f"{item}\n{stories[item]}\n")
+        
+        print("\n")
 
 if __name__ == "__main__":
     main()
