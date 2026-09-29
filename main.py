@@ -1,5 +1,6 @@
 import requests 
 from lxml import etree
+from datetime import datetime
 from dateutil import parser
 import os
 
@@ -9,38 +10,63 @@ def get_raw_xml(url : str) -> str:
         return None
     return res.content
 
-def parse_xml(xml : str) -> dict:
+def parse_xml(xml : str) -> list:
+    entries = []
     root = etree.fromstring(xml)
-    entries = {}
-
     channel = root.find(".//channel")
     feed_name = channel.findtext("title")
-
     for item in root.findall(".//item"):
-        title = item.findtext("title")
-        url = item.findtext("link")
-        date = item.findtext("pubDate")
-        if not title or not url:
-            continue   
-        date_obj = parser.parse(date)
-        entries[url] = [title, date_obj, feed_name]
+        item_story = story()
+        item_story.fill_fields_from_xml(item, feed_name)
+        entries.append(item_story)
     return entries
+
+class story:
+    def __init__(self, feed_name : str = "", story_title : str = "", story_date : str = str(datetime.min), story_url : str = ""):
+        self.feed_name = feed_name
+        self.story_title = story_title
+        self.story_date = parser.parse(story_date)
+        self.story_url = story_url
+
+    def get_date_str(self):
+        if self.story_date: 
+            return self.story_date.strftime("%m/%d/%Y")
+        else: 
+            return None
+
+    def fill_fields_from_xml(self, item  : str, feed_name : str):
+        self.feed_name = feed_name
+        self.story_title = item.findtext("title")
+        self.story_url = item.findtext("link")
+        self.story_date = parser.parse(item.findtext("pubDate"))
+
+class feed_reader:
+    def __init__(self):
+        self.feeds = []
+        self.stories = []
     
+    def get_feeds_from_txt(self, file_name : str):
+        with open(file_name, "r") as f:
+            self.feeds = [line.strip() for line in f.readlines()]
+            self.feeds = [line for line in self.feeds if line]
+
+    def grab_stories(self):
+        for feed in self.feeds:
+            xml = get_raw_xml(feed)
+            if not xml:
+                print(f"failed to grab {feed}!")
+                continue  
+            feed_stories = parse_xml(xml)
+            self.stories.extend(feed_stories)
+        self.stories = sorted(self.stories, key=lambda x: x.story_date, reverse=True)     
+    
+    def return_stories(self, num_stories : int):
+        return self.stories[0:min(int(num_stories), len(self.stories) - 1)]
+
 def main():
-    with open("feeds.txt", "r") as f:
-        feeds = [line.strip() for line in f.readlines()]
-        feeds = [line for line in feeds if line]
-
-    stories = []
-    for feed in feeds:
-        xml = get_raw_xml(feed)
-        if not xml:
-            print(f"failed to grab {feed}!")
-            continue  
-        feed_stories = parse_xml(xml)
-        stories.extend(feed_stories.items())
-
-    stories = sorted(stories, key=lambda x: x[1][1], reverse=True)     
+    f_reader = feed_reader()
+    f_reader.get_feeds_from_txt("feeds.txt")
+    f_reader.grab_stories()
 
     num_stories = ""
     while not num_stories.isdigit():
@@ -49,14 +75,14 @@ def main():
         except Exception as e:
             pass
 
+    returned_stories = f_reader.return_stories(num_stories)
+
     clear_str = "cls" if os.name == "nt" else "clear"
     os.system(clear_str)
 
-    for story in stories[0:int(num_stories)]:
-        date_str = story[1][1].strftime("%m/%d/%Y")
-        print(f"{story[1][2]} - {date_str}\n{story[1][0]}\n{story[0]}\n")
-            
-
+    for s in returned_stories:
+        print(f"{s.feed_name} - {s.get_date_str()}\n{s.story_title}\n{s.story_url}\n")
         
 if __name__ == "__main__":
+    parser.parse(str(datetime.min))
     main()
