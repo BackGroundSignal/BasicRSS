@@ -4,7 +4,6 @@ from datetime import datetime
 from dateutil import parser
 import os
 
-
 class story:
     def __init__(self, feed_name : str = "", story_title : str = "", story_date : str = str(datetime.min), story_url : str = ""):
         self.feed_name = feed_name
@@ -12,20 +11,17 @@ class story:
         self.story_date = parser.parse(story_date)
         self.story_url = story_url
 
-
     def get_date_str(self) -> str | None:
         if self.story_date: 
             return self.story_date.strftime("%m/%d/%Y")
         else: 
             return None
 
-
     def fill_fields_from_xml(self, item : str, feed_name : str) -> None:
         self.feed_name = feed_name
         self.story_title = item.findtext("title")
         self.story_url = item.findtext("link")
         self.story_date = parser.parse(item.findtext("pubDate"))
-
 
 class feed_reader:
     def __init__(self):
@@ -50,13 +46,11 @@ class feed_reader:
     def return_stories(self, num_stories : int) -> list:
         return self.stories[0:max(min(int(num_stories), len(self.stories) - 1), 0)]
 
-
 def request_raw_xml(url : str) -> str | None:
     res = requests.get(url)
     if res.status_code != 200:
         return None
     return res.content
-
 
 def parse_xml(xml : str) -> list:
     entries = []
@@ -68,7 +62,6 @@ def parse_xml(xml : str) -> list:
         item_story.fill_fields_from_xml(item, feed_name)
         entries.append(item_story)
     return entries
-
 
 def main() -> None:
     f_reader = feed_reader()
@@ -83,8 +76,18 @@ def main() -> None:
             pass
 
     returned_stories = f_reader.return_stories(num_stories)
-    term_clear_str = "cls" if os.name == "nt" else "clear"
-    os.system(term_clear_str)
+
+    clear = ""
+    while clear.lower() != "y" and clear.lower() != "n":
+        try:
+            clear = input("Clear the terminal? (y/n): ")
+        except Exception as e:
+            pass
+    clear = clear == "y"
+
+    if clear:
+        term_clear_str = "cls" if os.name == "nt" else "clear"
+        os.system(term_clear_str)
 
     for s in returned_stories:
         print(f"{s.feed_name} - {s.get_date_str()}\n{s.story_title}\n{s.story_url}\n")
