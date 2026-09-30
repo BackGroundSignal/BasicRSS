@@ -80,7 +80,7 @@ def main() -> None:
     clear = ""
     while clear.lower() != "y" and clear.lower() != "n":
         try:
-            clear = input("Clear the terminal? (y/n): ")
+            clear = input("Clear the terminal? y/[n]: ") or "y"
         except Exception as e:
             pass
     clear = clear == "y"
