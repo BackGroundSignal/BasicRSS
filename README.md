@@ -7,6 +7,7 @@ A simple RSS feed grabber. Put XML links in feeds.txt, then run and follow progr
 # Requirements
 - Python 
 - lxml (installed with ```pip install lxml```)
+- dateutil (installed with ```pip install python-dateutil```)
 
 ## TASKS 
 - [X] Grab the RSS feed of single sites
