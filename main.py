@@ -13,7 +13,7 @@ class story:
 
     def get_date_str(self) -> str | None:
         if self.story_date: 
-            return self.story_date.strftime("%m/%d/%Y")
+            return self.story_date.strftime("%m/%d/%Y %H:%M:%S")
         else: 
             return None
 
@@ -66,6 +66,7 @@ def parse_xml(xml : str) -> list:
 def main() -> None:
     f_reader = feed_reader()
     f_reader.get_feeds_from_txt("feeds.txt")
+    print("Grabbing feeds...")
     f_reader.grab_stories()
 
     num_stories = ""
