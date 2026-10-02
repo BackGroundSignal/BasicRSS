@@ -2,3 +2,5 @@ https://www.propublica.org/feeds/propublica/main
 https://www.404media.co/rss/
 https://feedx.net/rss/ap.xml
 https://feeds.feedburner.com/motherjones/feed
+https://www.aljazeera.com/xml/rss/all.xml
+https://feeds.arstechnica.com/arstechnica/tech-policy
