@@ -4,8 +4,8 @@ from datetime import datetime
 from dateutil import parser
 import os
 
-class story:
-    def __init__(self, feed_name : str = "", story_title : str = "", story_date : str = str(datetime.min), story_url : str = ""):
+class Story:
+    def __init__(self, feed_name : str = "", story_title : str = "", story_date : str = str(datetime.min), story_url : str = "") -> None:
         self.feed_name = feed_name
         self.story_title = story_title
         self.story_date = parser.parse(story_date)
@@ -23,8 +23,8 @@ class story:
         self.story_url = item.findtext("link")
         self.story_date = parser.parse(item.findtext("pubDate"))
 
-class feed_reader:
-    def __init__(self):
+class feedReader:
+    def __init__(self) -> None:
         self.feeds = []
         self.stories = []
     
@@ -43,7 +43,7 @@ class feed_reader:
             self.stories.extend(feed_stories)
         self.stories = sorted(self.stories, key=lambda x: x.story_date, reverse=True)     
     
-    def return_stories(self, num_stories : int) -> list:
+    def return_stories(self, num_stories : int) -> list[Story]:
         return self.stories[0:max(min(int(num_stories), len(self.stories) - 1), 0)]
 
 def request_raw_xml(url : str) -> str | None:
@@ -52,19 +52,19 @@ def request_raw_xml(url : str) -> str | None:
         return None
     return res.content
 
-def parse_xml(xml : str) -> list:
+def parse_xml(xml : str) -> list[Story]:
     entries = []
     root = etree.fromstring(xml)
     channel = root.find(".//channel")
     feed_name = channel.findtext("title")
     for item in root.findall(".//item"):
-        item_story = story()
+        item_story = Story()
         item_story.fill_fields_from_xml(item, feed_name)
         entries.append(item_story)
     return entries
 
 def main() -> None:
-    f_reader = feed_reader()
+    f_reader = feedReader()
     f_reader.get_feeds_from_txt("feeds.txt")
     print("Grabbing feeds...")
     f_reader.grab_stories()
@@ -94,5 +94,4 @@ def main() -> None:
         print(f"{s.feed_name} - {s.get_date_str()}\n{s.story_title}\n{s.story_url}\n")
         
 if __name__ == "__main__":
-    parser.parse(str(datetime.min))
     main()
